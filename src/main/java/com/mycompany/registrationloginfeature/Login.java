@@ -8,31 +8,56 @@ package com.mycompany.registrationloginfeature;
  *
  * @author Malwandla
  */
+import java.util.regex.Pattern;
+ 
+/**
+ * Login class: registration validation and login verification.
+ *
+ * @author Malwandla
+ */
 public class Login {
-
+ 
     private String username;
     private String password;
+    private String cellPhone;
     private String firstName;
     private String lastName;
-
-    // Check username: must contain _ and be 5 characters or less
-    public boolean checkUserName(String user) {
-        return user.contains("_") && user.length() <= 5;
+ 
+    
+    private static final Pattern CELL_PATTERN = Pattern.compile("^\\+\\d{1,3}\\d{1,10}$");
+ 
+    public Login() {
     }
-
-    // Check password complexity
+ 
+    public Login(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+ 
+    public void setNames(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+ 
+    // ---------------- Validation ----------------
+ 
+    // Username must contain an underscore and be no more than five characters long
+    public boolean checkUserName(String user) {
+        return user != null && user.contains("_") && user.length() <= 5;
+    }
+ 
+    // Password: 8+ characters, a capital letter, a number and a special character
     public boolean checkPasswordComplexity(String pass) {
-        if (pass.length() < 8) {
+        if (pass == null || pass.length() < 8) {
             return false;
         }
-
+ 
         boolean hasCapital = false;
         boolean hasNumber = false;
         boolean hasSpecial = false;
-
+ 
         for (int i = 0; i < pass.length(); i++) {
             char c = pass.charAt(i);
-
             if (Character.isUpperCase(c)) {
                 hasCapital = true;
             }
@@ -43,53 +68,80 @@ public class Login {
                 hasSpecial = true;
             }
         }
-
         return hasCapital && hasNumber && hasSpecial;
     }
-
-    // Check cell phone number (must start with +27)
+ 
+    // Cell number must contain the international code and be the correct length
     public boolean checkCellPhoneNumber(String cell) {
-        return cell.matches("^\\+27[0-9]{1,10}$");
+        return cell != null && CELL_PATTERN.matcher(cell).matches();
     }
-
-    // Register the user
+ 
+    // ---------------- Messages ----------------
+ 
+    public String returnUserNameMessage(String user) {
+        if (checkUserName(user)) {
+            return "Username successfully captured.";
+        }
+        return "Username is not correctly formatted; please ensure that your username "
+                + "contains an underscore and is no more than five characters in length.";
+    }
+ 
+    public String returnPasswordMessage(String pass) {
+        if (checkPasswordComplexity(pass)) {
+            return "Password successfully captured.";
+        }
+        return "Password is not correctly formatted; please ensure that the password "
+                + "contains at least eight characters, a capital letter, a number, and a special character.";
+    }
+ 
+    public String returnCellPhoneMessage(String cell) {
+        if (checkCellPhoneNumber(cell)) {
+            return "Cell number successfully captured.";
+        }
+        return "Cell number is incorrectly formatted or does not contain an international code; "
+                + "please correct the number and try again.";
+    }
+ 
+    // ---------------- Registration and login ----------------
+ 
+    // Returns the first problem found, or a success message once everything is valid
     public String registerUser(String user, String pass, String cell) {
-
         if (!checkUserName(user)) {
-            return "Username is not correctly formatted; please ensure that your username contains an underscore and is no more than five characters in length.";
+            return returnUserNameMessage(user);
         }
-
         if (!checkPasswordComplexity(pass)) {
-            return "Password is not correctly formatted; please ensure that the password contains at least eight characters, a capital letter, a number, and a special character.";
+            return returnPasswordMessage(pass);
         }
-
         if (!checkCellPhoneNumber(cell)) {
-            return "Cell phone number incorrectly formatted or does not contain international code.";
+            return returnCellPhoneMessage(cell);
         }
-
-        // Save the details
+ 
         this.username = user;
         this.password = pass;
-
-        // Split username to get first and last name (example: kyl_1)
-        String[] parts = user.split("_");
-        this.firstName = parts[0];
-        this.lastName = parts[1];
-
-        return "Username successfully captured.\nPassword successfully captured.\nCell phone number successfully added.";
+        this.cellPhone = cell;
+ 
+        return returnUserNameMessage(user) + "\n"
+                + returnPasswordMessage(pass) + "\n"
+                + returnCellPhoneMessage(cell) + "\n"
+                + "User has been registered successfully.";
     }
-
-    // Check if login details are correct
+ 
+    // Checks the login details match the details stored at registration
     public boolean loginUser(String user, String pass) {
-        return user.equals(this.username) && pass.equals(this.password);
+        return username != null && password != null
+                && username.equals(user) && password.equals(pass);
     }
-
-    // Return the login message
+ 
+    // Returns the login status message
     public String returnLoginStatus(String user, String pass) {
         if (loginUser(user, pass)) {
-            return "Welcome " + firstName + ", " + lastName + " it is great to see you again.";
-        } else {
-            return "Username or password incorrect, please try again.";
+            return "Welcome " + firstName + " ," + lastName + " it is great to see you.";
         }
+        return "Username or password incorrect, please try again.";
+    }
+ 
+    public String getCellPhone() {
+        return cellPhone;
     }
 }
+ 
